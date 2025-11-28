@@ -22,7 +22,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-comp
 
 // Initialize Firebase in the service worker
 firebase.initializeApp({
-    apiKey: "AIzaSyCqug9b5eb4gBre21pKm9UXhbRT8FOSZx0",
+    apiKey: "AIzaSyCquq9b5ab4gBre2lpKm9UXhbRI8FQS7x0",
     authDomain: "moments-ase.firebaseapp.com",
     projectId: "moments-ase",
     storageBucket: "moments-ase.firebasestorage.app",
