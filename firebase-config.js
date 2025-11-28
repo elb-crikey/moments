@@ -11,7 +11,7 @@ const firebaseConfig = {
 };
 
 // VAPID key for web push notifications
-const VAPID_KEY = 'B0f2WDUFxR7zfH1GK0hTImvXZroKoxznHXdknTMESdx2cfdRy8CtdRk13z_HH3bSZw2i_ERdZearT-cYTy-8dGM';
+const VAPID_KEY = 'BOf2WDUFxR7zfH1GK0hTlmvXZroKoxznHXdknTMESdx2cfdRy8CtdRk13z_HH3bSZw2i_ERdZearT-cYTy-8dGM';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
