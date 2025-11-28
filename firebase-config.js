@@ -2,7 +2,7 @@
 // Project: moments-ase
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCqug9b5eb4gBre21pKm9UXhbRT8FOSZx0",
+    apiKey: "AIzaSyCquq9b5ab4gBre2lpKm9UXhbRI8FQS7x0",
     authDomain: "moments-ase.firebaseapp.com",
     projectId: "moments-ase",
     storageBucket: "moments-ase.firebasestorage.app",
