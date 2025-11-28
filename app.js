@@ -815,29 +815,27 @@ async function sendTestNotification() {
     // Pick a random moment
     const randomMoment = moments[Math.floor(Math.random() * moments.length)];
     
-    // For testing, we'll trigger a local notification
-    // In production, this would call the Cloud Function
-    if ('Notification' in window && Notification.permission === 'granted') {
-        const notification = new Notification(randomMoment.name, {
-            body: randomMoment.categoryName,
-            icon: '/icon-192.png',
-            badge: '/badge-96.png',
-            tag: `moment-${randomMoment.id}`,
-            data: { momentId: randomMoment.id },
-            requireInteraction: true,
-            actions: [
-                { action: 'done', title: 'Ase' },
-                { action: 'snooze', title: 'Another time' }
-            ]
-        });
-        
-        notification.onclick = () => {
-            window.focus();
-            showMomentDetail(randomMoment.id);
-            notification.close();
-        };
-        
-        showToast('Test notification sent!', 'success');
+    // Use service worker to show notification (supports actions)
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification(randomMoment.name, {
+                body: randomMoment.categoryName,
+                icon: '/icon-192.png',
+                badge: '/badge-96.png',
+                tag: `moment-${randomMoment.id}`,
+                data: { momentId: randomMoment.id, url: `/?moment=${randomMoment.id}` },
+                requireInteraction: true,
+                actions: [
+                    { action: 'done', title: 'Ase' },
+                    { action: 'snooze', title: 'Another time' }
+                ]
+            });
+            showToast('Test notification sent!', 'success');
+        } catch (error) {
+            console.error('[App] Error showing notification:', error);
+            showToast('Error sending notification', 'error');
+        }
     }
 }
 
