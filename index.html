@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#22083a">
+    <meta name="description" content="Gentle self-care reminders throughout your day">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Moments</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Google Fonts - Cormorant for elegance, Source Sans for readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Source+Sans+3:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Home View - Calming background with minimal UI -->
+    <div id="homeView" class="view active">
+        <div class="home-background">
+            <img id="backgroundImage" src="" alt="" class="bg-image">
+            <div class="bg-overlay"></div>
+        </div>
+        
+        <header class="home-header">
+            <button id="menuButton" class="menu-button" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </header>
+        
+        <div class="home-content">
+            <h1 class="app-title">moments</h1>
+            <p class="app-subtitle">notice. consider. ase.</p>
+        </div>
+        
+        <div class="home-footer">
+            <button id="exploreButton" class="explore-button">
+                explore moments
+            </button>
+        </div>
+    </div>
+
+    <!-- Slide-out Menu -->
+    <nav id="slideMenu" class="slide-menu">
+        <div class="menu-header">
+            <h2>Menu</h2>
+            <button id="closeMenu" class="close-menu" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="menu-list">
+            <li><button data-view="library">Browse Moments</button></li>
+            <li><button data-view="addMoment">Add New Moment</button></li>
+            <li><button data-view="settings">Settings</button></li>
+        </ul>
+        <div class="menu-footer">
+            <div id="notificationStatus" class="notification-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Checking notifications...</span>
+            </div>
+        </div>
+    </nav>
+    <div id="menuOverlay" class="menu-overlay"></div>
+
+    <!-- Library View -->
+    <div id="libraryView" class="view">
+        <header class="view-header">
+            <button class="back-button" data-view="home" aria-label="Back to home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1>Moments Library</h1>
+        </header>
+        
+        <div class="library-content">
+            <div id="categoryList" class="category-list">
+                <!-- Categories populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Category View -->
+    <div id="categoryView" class="view">
+        <header class="view-header">
+            <button class="back-button" data-view="library" aria-label="Back to library">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 id="categoryTitle">Category</h1>
+        </header>
+        
+        <div class="category-content">
+            <div id="momentsList" class="moments-list">
+                <!-- Moments populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Moment Detail View -->
+    <div id="detailView" class="view">
+        <header class="view-header">
+            <button class="back-button" data-view="category" aria-label="Back to category">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1 id="detailTitle">Moment</h1>
+        </header>
+        
+        <div class="detail-content">
+            <div class="detail-meta">
+                <span id="detailCategory" class="detail-category"></span>
+                <span id="detailDuration" class="detail-duration"></span>
+            </div>
+            <div id="detailInstructions" class="detail-instructions"></div>
+            <div id="detailLinks" class="detail-links"></div>
+            
+            <div class="detail-actions">
+                <button id="markDoneButton" class="action-button primary">Ase</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Moment View -->
+    <div id="addMomentView" class="view">
+        <header class="view-header">
+            <button class="back-button" data-view="home" aria-label="Back to home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1>Add Moment</h1>
+        </header>
+        
+        <div class="form-content">
+            <div class="form-group">
+                <label for="momentName">Name</label>
+                <input type="text" id="momentName" placeholder="What is this moment called?">
+            </div>
+            
+            <div class="form-group">
+                <label for="momentCategory">Category</label>
+                <select id="momentCategory">
+                    <option value="focus-calm">Focus/Calm Tools</option>
+                    <option value="movements">Movements</option>
+                    <option value="body-awareness">Body Awareness</option>
+                    <option value="mental-reframing">Mental Reframing</option>
+                    <option value="quieting">Quieting</option>
+                    <option value="longer-care">Longer Care</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="momentDuration">Duration</label>
+                <select id="momentDuration">
+                    <option value="short">Short (30 sec - 2 min)</option>
+                    <option value="medium">Medium (3-10 min)</option>
+                    <option value="long">Long (20-30 min)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="momentTimeRestriction">When to show</label>
+                <select id="momentTimeRestriction">
+                    <option value="anytime">Anytime (8am-10pm)</option>
+                    <option value="daytime">Daytime only (weekdays 8am-8pm)</option>
+                    <option value="evening-weekend">Evenings & weekends</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="momentInstructions">Instructions</label>
+                <textarea id="momentInstructions" rows="4" placeholder="How do you do this moment?"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="momentLink">Link (optional)</label>
+                <input type="url" id="momentLink" placeholder="https://...">
+            </div>
+            
+            <div class="form-actions">
+                <button id="saveMomentButton" class="action-button primary">Save Moment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings View -->
+    <div id="settingsView" class="view">
+        <header class="view-header">
+            <button class="back-button" data-view="home" aria-label="Back to home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h1>Settings</h1>
+        </header>
+        
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Notifications</h3>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Enable notifications</span>
+                        <span class="setting-description">Receive gentle reminders throughout the day</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="notificationsToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Daily reminders</span>
+                        <span class="setting-description">How many notifications per day</span>
+                    </div>
+                    <div class="setting-control">
+                        <input type="range" id="dailyCount" min="3" max="12" value="7">
+                        <span id="dailyCountDisplay" class="range-value">7</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>Quiet Hours</h3>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Start time</span>
+                    </div>
+                    <input type="time" id="quietStart" value="22:00" class="time-input">
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>End time</span>
+                    </div>
+                    <input type="time" id="quietEnd" value="08:00" class="time-input">
+                </div>
+            </div>
+            
+            <!-- Debug section - will be hidden in production -->
+            <div class="settings-section debug-section">
+                <h3>Debug Info</h3>
+                <div class="debug-info">
+                    <p><strong>Token Status:</strong> <span id="debugTokenStatus">Unknown</span></p>
+                    <p><strong>Token:</strong> <span id="debugToken" class="token-display">None</span></p>
+                    <button id="testNotificationBtn" class="action-button secondary">Send Test Notification</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
