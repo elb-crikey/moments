@@ -369,9 +369,6 @@ function setupEventListeners() {
         showToast('Ase! Moment complete.', 'success');
         showView('home');
     });
-    
-    // Test notification button (debug)
-    document.getElementById('testNotificationBtn').addEventListener('click', sendTestNotification);
 }
 
 // ==================== MENU ====================
@@ -593,7 +590,7 @@ function formatTimeRestriction(restriction) {
     }
 }
 
-// ==================== SERVICE WORKER & NOTIFICATIONS ====================
+// ==================== SERVICE WORKER (for PWA only) ====================
 async function setupServiceWorker() {
     if (!('serviceWorker' in navigator)) {
         console.warn('[App] Service workers not supported');
@@ -604,58 +601,28 @@ async function setupServiceWorker() {
         console.log('[App] Registering service worker...');
         swRegistration = await navigator.serviceWorker.register('/sw.js');
         console.log('[App] Service worker registered:', swRegistration.scope);
-        
-        // Wait for the service worker to be ready
-        await navigator.serviceWorker.ready;
-        console.log('[App] Service worker is ready');
-        
     } catch (error) {
         console.error('[App] Service worker registration failed:', error);
     }
 }
 
+// ==================== PUSHOVER NOTIFICATIONS ====================
 async function checkNotificationStatus() {
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.querySelector('.status-text');
     const toggle = document.getElementById('notificationsToggle');
-    const debugStatus = document.getElementById('debugTokenStatus');
-    const debugToken = document.getElementById('debugToken');
     
-    if (!('Notification' in window)) {
-        statusDot.classList.add('error');
-        statusText.textContent = 'Notifications not supported';
-        toggle.disabled = true;
-        return;
-    }
+    // Check if notifications are enabled in Firestore
+    const enabled = localStorage.getItem('notificationsEnabled') === 'true';
     
-    const permission = Notification.permission;
-    console.log('[App] Notification permission:', permission);
-    
-    if (permission === 'granted') {
-        // Check if we have a valid token
-        const savedToken = localStorage.getItem('fcmToken');
-        if (savedToken) {
-            fcmToken = savedToken;
-            statusDot.classList.add('active');
-            statusText.textContent = 'Notifications active';
-            toggle.checked = true;
-            debugStatus.textContent = 'Active';
-            debugToken.textContent = savedToken.substring(0, 40) + '...';
-        } else {
-            statusDot.classList.remove('active');
-            statusText.textContent = 'Tap to enable notifications';
-            toggle.checked = false;
-            debugStatus.textContent = 'No token saved';
-        }
-    } else if (permission === 'denied') {
-        statusDot.classList.add('error');
-        statusText.textContent = 'Notifications blocked';
-        toggle.disabled = true;
-        debugStatus.textContent = 'Permission denied';
+    if (enabled) {
+        statusDot.classList.add('active');
+        statusText.textContent = 'Notifications active (via Pushover)';
+        toggle.checked = true;
     } else {
-        statusText.textContent = 'Tap to enable notifications';
+        statusDot.classList.remove('active');
+        statusText.textContent = 'Notifications disabled';
         toggle.checked = false;
-        debugStatus.textContent = 'Not requested';
     }
 }
 
@@ -664,100 +631,35 @@ async function enableNotifications() {
     
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.querySelector('.status-text');
-    const debugStatus = document.getElementById('debugTokenStatus');
-    const debugToken = document.getElementById('debugToken');
     
     try {
-        // Step 1: Request permission
-        console.log('[App] Step 1: Requesting permission...');
-        const permission = await Notification.requestPermission();
-        console.log('[App] Permission result:', permission);
+        const settings = loadSettings();
         
-        if (permission !== 'granted') {
-            throw new Error('Notification permission denied');
-        }
+        // Save settings to Firestore
+        await db.collection('settings').doc('notifications').set({
+            enabled: true,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            dailyCount: settings.dailyCount || 7,
+            quietStart: settings.quietStart || '22:00',
+            quietEnd: settings.quietEnd || '08:00',
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
         
-        // Step 2: Wait for service worker
-        console.log('[App] Step 2: Waiting for service worker...');
-        if (!swRegistration) {
-            await setupServiceWorker();
-        }
-        const registration = await navigator.serviceWorker.ready;
-        console.log('[App] Service worker ready');
+        localStorage.setItem('notificationsEnabled', 'true');
         
-        // Step 3: Initialize Firebase Messaging
-        console.log('[App] Step 3: Initializing Firebase Messaging...');
-        messaging = firebase.messaging();
-        
-        // Step 4: Get FCM token
-        console.log('[App] Step 4: Getting FCM token...');
-        const token = await messaging.getToken({
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: registration
-        });
-        
-        if (!token) {
-            throw new Error('Failed to get FCM token');
-        }
-        
-        console.log('[App] Got FCM token:', token.substring(0, 40) + '...');
-        fcmToken = token;
-        
-        // Step 5: Save token locally
-        localStorage.setItem('fcmToken', token);
-        
-        // Step 6: Register token with server (Firestore)
-        console.log('[App] Step 5: Registering token with server...');
-        await registerTokenWithServer(token);
-        
-        // Update UI
         statusDot.classList.remove('error');
         statusDot.classList.add('active');
-        statusText.textContent = 'Notifications active';
-        debugStatus.textContent = 'Active - Token registered';
-        debugToken.textContent = token.substring(0, 40) + '...';
+        statusText.textContent = 'Notifications active (via Pushover)';
         
         showToast('Notifications enabled!', 'success');
         
-        // Set up foreground message handler
-        messaging.onMessage((payload) => {
-            console.log('[App] Foreground message received:', payload);
-            handleForegroundMessage(payload);
-        });
-        
     } catch (error) {
         console.error('[App] Error enabling notifications:', error);
-        
-        statusDot.classList.remove('active');
         statusDot.classList.add('error');
         statusText.textContent = 'Error enabling notifications';
-        debugStatus.textContent = 'Error: ' + error.message;
-        
         document.getElementById('notificationsToggle').checked = false;
-        showToast('Could not enable notifications: ' + error.message, 'error');
+        showToast('Could not enable notifications', 'error');
     }
-}
-
-async function registerTokenWithServer(token) {
-    const settings = loadSettings();
-    
-    const deviceData = {
-        token: token,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        dailyCount: settings.dailyCount || 7,
-        quietStart: settings.quietStart || '22:00',
-        quietEnd: settings.quietEnd || '08:00',
-        enabled: true,
-        registeredAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    
-    console.log('[App] Saving device data to Firestore:', deviceData);
-    
-    // Use token as document ID for easy lookup
-    await db.collection('devices').doc(token).set(deviceData, { merge: true });
-    
-    console.log('[App] Device registered successfully');
 }
 
 async function disableNotifications() {
@@ -767,16 +669,12 @@ async function disableNotifications() {
     const statusText = document.querySelector('.status-text');
     
     try {
-        if (fcmToken) {
-            // Mark device as disabled in Firestore
-            await db.collection('devices').doc(fcmToken).update({
-                enabled: false,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+        await db.collection('settings').doc('notifications').update({
+            enabled: false,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
         
-        localStorage.removeItem('fcmToken');
-        fcmToken = null;
+        localStorage.setItem('notificationsEnabled', 'false');
         
         statusDot.classList.remove('active');
         statusText.textContent = 'Notifications disabled';
@@ -788,54 +686,28 @@ async function disableNotifications() {
     }
 }
 
-function handleForegroundMessage(payload) {
-    // Show a notification even when app is in foreground
-    const { title, body } = payload.notification || {};
-    const momentId = payload.data?.momentId;
-    
-    if (title) {
-        // Use native notification for foreground
-        new Notification(title, {
-            body: body,
-            icon: '/icon-192.png',
-            badge: '/badge-96.png',
-            data: { momentId }
-        });
-    }
-}
-
 async function sendTestNotification() {
-    console.log('[App] Sending test notification...');
+    console.log('[App] Sending test notification via Cloud Function...');
     
-    if (!fcmToken) {
-        showToast('Please enable notifications first', 'error');
-        return;
-    }
-    
-    // Pick a random moment
-    const randomMoment = moments[Math.floor(Math.random() * moments.length)];
-    
-    // Use service worker to show notification (supports actions)
-    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            await registration.showNotification(randomMoment.name, {
-                body: randomMoment.categoryName,
-                icon: '/icon-192.png',
-                badge: '/badge-96.png',
-                tag: `moment-${randomMoment.id}`,
-                data: { momentId: randomMoment.id, url: `/?moment=${randomMoment.id}` },
-                requireInteraction: true,
-                actions: [
-                    { action: 'done', title: 'Ase' },
-                    { action: 'snooze', title: 'Another time' }
-                ]
-            });
-            showToast('Test notification sent!', 'success');
-        } catch (error) {
-            console.error('[App] Error showing notification:', error);
-            showToast('Error sending notification', 'error');
+    try {
+        showToast('Sending test...', 'info');
+        
+        // Call the test endpoint
+        const response = await fetch('https://us-central1-moments-ase.cloudfunctions.net/testNotification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`Test sent: ${result.moment}`, 'success');
+        } else {
+            showToast('Test failed: ' + result.error, 'error');
         }
+    } catch (error) {
+        console.error('[App] Test notification error:', error);
+        showToast('Could not send test', 'error');
     }
 }
 
@@ -871,10 +743,11 @@ async function saveSettings() {
     
     localStorage.setItem('momentsSettings', JSON.stringify(settings));
     
-    // Update server if token exists
-    if (fcmToken) {
+    // Update Firestore settings
+    const enabled = localStorage.getItem('notificationsEnabled') === 'true';
+    if (enabled) {
         try {
-            await db.collection('devices').doc(fcmToken).update({
+            await db.collection('settings').doc('notifications').update({
                 dailyCount: settings.dailyCount,
                 quietStart: settings.quietStart,
                 quietEnd: settings.quietEnd,
