@@ -11,5 +11,12 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+// --- ADD THESE TWO LINES ---
+var auth = firebase.auth();
+auth.signInAnonymously().catch(function(error) {
+    console.error("Anonymous sign-in failed:", error);
+});
+// ----------------------------
+
 // Initialize Firestore
 const db = firebase.firestore();
