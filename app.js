@@ -253,10 +253,14 @@ let currentCategory = null;
 let currentMoment = null;
 let fcmToken = null;
 let swRegistration = null;
+let currentUser = null;
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[App] Initializing Moments app...');
+    
+    // Sign in anonymously first
+    await signInAnonymously();
     
     // Load background image
     loadBackgroundImage();
@@ -278,6 +282,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     console.log('[App] Initialization complete');
 });
+
+// ==================== AUTHENTICATION ====================
+async function signInAnonymously() {
+    try {
+        const result = await firebase.auth().signInAnonymously();
+        currentUser = result.user;
+        console.log('[App] Signed in anonymously. User ID:', currentUser.uid);
+    } catch (error) {
+        console.error('[App] Auth error:', error);
+    }
+}
 
 // ==================== BACKGROUND IMAGE ====================
 const UNSPLASH_ACCESS_KEY = 'vGSfV3QN4IjZZa6IvAkju9LR--mxbWUWFsLIQEi3_fw';
@@ -369,6 +384,9 @@ function setupEventListeners() {
         showToast('Ase! Moment complete.', 'success');
         showView('home');
     });
+    
+    // Test notification button
+    document.getElementById('testNotificationBtn').addEventListener('click', sendTestNotification);
 }
 
 // ==================== MENU ====================
