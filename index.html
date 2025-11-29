@@ -38,8 +38,10 @@
         </header>
         
         <div class="home-content">
-            <h1 class="app-title">moments</h1>
-            <p class="app-subtitle">notice. consider. ase.</p>
+            <div class="title-container">
+                <h1 class="app-title">moments</h1>
+                <p class="app-subtitle">notice. consider. ase.</p>
+            </div>
         </div>
         
         <div class="home-footer">
@@ -252,16 +254,17 @@
             <!-- Pushover info -->
             <div class="settings-section">
                 <h3>About Notifications</h3>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
                     Notifications are sent via Pushover app. Make sure you have Pushover installed on your phone.
                 </p>
+                <button id="testNotificationBtn" class="action-button secondary">Send Test Notification</button>
             </div>
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <script src="firebase-config.js"></script>
