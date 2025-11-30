@@ -296,13 +296,13 @@ async function signInAnonymously() {
 
 // ==================== BACKGROUND IMAGE ====================
 const UNSPLASH_ACCESS_KEY = 'vGSfV3QN4IjZZa6IvAkju9LR--mxbWUWFsLIQEi3_fw';
+const UNSPLASH_COLLECTION_ID = 'pgJKMKO-LI0';
 
 async function loadBackgroundImage() {
     const img = document.getElementById('backgroundImage');
     
-    // Unsplash API for calming ocean/night/underwater images
-    const query = 'ocean,underwater,teal,night sky,stars';
-    const url = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=portrait&client_id=${UNSPLASH_ACCESS_KEY}`;
+    // Fetch random photo from curated collection
+    const url = `https://api.unsplash.com/photos/random?collections=${UNSPLASH_COLLECTION_ID}&orientation=portrait&client_id=${UNSPLASH_ACCESS_KEY}`;
     
     try {
         const response = await fetch(url);
